@@ -1,20 +1,18 @@
 import flet as ft
 from database.db import criar_tabelas
-from views.login import login_view
-from views.aluno import aluno_view
-from views.guarda import guarda_view
-from views.professor import professor_view
+from views.login_view import login_view  # Importando o login_view
+from views.admin_view import admin_view
+from views.aluno_view import aluno_view
+from views.guarda_view import guarda_view
+from views.professor_view import professor_view
 from controllers.autenticacao import login
 
 
 def main(page: ft.Page):
-    page.title = "Controle de Chave do Laboratório"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.theme_mode = ft.ThemeMode.LIGHT
-    criar_tabelas()  # Criar tabelas no banco de dados
-    # Definir uma função de login para autenticar usuários
+    # Garantir que as tabelas sejam criadas no início
+    criar_tabelas()
 
+    # Função para realizar o login e redirecionar o usuário para a interface correta
     def realizar_login(usuario, senha, tipo_usuario):
         user_data = login(usuario, senha, tipo_usuario)
         if user_data is None:
@@ -28,8 +26,10 @@ def main(page: ft.Page):
                 guarda_view(page)
             elif tipo_usuario == 'Professor':
                 professor_view(page)
+            elif tipo_usuario == 'Admin':  # Verifica se é um administrador
+                admin_view(page)
 
-    # Inicialmente, carregamos a tela de login
+    # Carregar tela de login inicialmente
     login_view(page, realizar_login)
 
 

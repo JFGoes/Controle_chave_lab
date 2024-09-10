@@ -20,8 +20,18 @@ def criar_tabelas():
         nome TEXT NOT NULL,
         matricula TEXT UNIQUE NOT NULL,
         senha TEXT NOT NULL,
-        tipo TEXT NOT NULL,
-        com_chave BOOLEAN NOT NULL DEFAULT 0
+        tipo TEXT NOT NULL,  -- Aluno, Professor, Guarda, Admin
+        com_chave BOOLEAN NOT NULL DEFAULT 0,
+        laboratorio_id INTEGER,
+        FOREIGN KEY (laboratorio_id) REFERENCES laboratorios(id)
+    )
+    ''')
+
+    # Tabela de laboratórios
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS laboratorios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT UNIQUE NOT NULL
     )
     ''')
 
@@ -40,17 +50,41 @@ def criar_tabelas():
     conn.close()
 
 
-def inserir_usuario(nome, matricula, senha, tipo):
+def inserir_laboratorio(nome):
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute('''
-    INSERT INTO usuarios (nome, matricula, senha, tipo)
-    VALUES (?, ?, ?, ?)
-    ''', (nome, matricula, senha, tipo))
+    INSERT INTO laboratorios (nome)
+    VALUES (?)
+    ''', (nome,))
 
     conn.commit()
     conn.close()
+
+
+def inserir_usuario(nome, matricula, senha, tipo, laboratorio_id=None):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+    INSERT INTO usuarios (nome, matricula, senha, tipo, laboratorio_id)
+    VALUES (?, ?, ?, ?, ?)
+    ''', (nome, matricula, senha, tipo, laboratorio_id))
+
+    conn.commit()
+    conn.close()
+
+
+def listar_laboratorios():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT id, nome FROM laboratorios')
+    laboratorios = cursor.fetchall()
+
+    conn.close()
+    return laboratorios
 
 
 def buscar_usuario_por_matricula(matricula, senha):
@@ -89,3 +123,23 @@ def registrar_acao(aluno_id, acao):
 
     conn.commit()
     conn.close()
+
+
+def listar_historico():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+    SELECT u.nome AS aluno, h.acao, h.timestamp
+    FROM historico h
+    JOIN usuarios u ON u.id = h.aluno_id
+    ORDER BY h.timestamp DESC
+    ''')
+
+    historico = cursor.fetchall()
+    conn.close()
+
+    # Adicionar um print para verificar se o histórico está retornando dados
+    print(historico)
+
+    return [{"aluno": row[0], "acao": row[1], "timestamp": row[2]} for row in historico]
