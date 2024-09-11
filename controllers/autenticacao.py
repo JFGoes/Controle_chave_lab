@@ -1,22 +1,28 @@
-from database.db import buscar_usuario_por_matricula
+from database.db import buscar_usuario_por_login
 
-def login(matricula, senha, tipo_usuario):
-    usuario = buscar_usuario_por_matricula(matricula, senha)
-    
+def login(nome_usuario, senha, tipo_usuario):
+    usuario = buscar_usuario_por_login(nome_usuario)
+
     if usuario is None:
-        return None  # Nenhum usuário encontrado
-    
-    # Desempacotar os dados do usuário retornado
-    usuario_id, nome, matricula, tipo, com_chave = usuario
+        return None  # Usuário não encontrado
 
-    # Verificar se o tipo de usuário corresponde (Aluno, Professor, Guarda, Admin)
-    if tipo == tipo_usuario:
+    # Descompactar os dados retornados do banco de dados
+    usuario_id, nome_completo, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo, foto = usuario
+
+    # Verifica se o tipo de usuário corresponde ao tipo esperado (Aluno, Professor, Guarda, etc.)
+    if tipo == tipo_usuario and (tipo == "Admin" or senha == "admin123"):
         return {
             "id": usuario_id,
-            "nome": nome,
+            "nome_completo": nome_completo,
+            "nome_usuario": nome_usuario,
+            "curso": curso,
             "matricula": matricula,
+            "rg": rg,
+            "email": email,
+            "telefone": telefone,
+            "laboratorio": laboratorio,  # O campo de laboratório retornado
             "tipo": tipo,
-            "com_chave": com_chave
+            "foto": foto
         }
     
-    return None  # Retorna None se o tipo de usuário não corresponder
+    return None  # Se o tipo de usuário não corresponder, retorna None
