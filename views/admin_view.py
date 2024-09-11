@@ -6,12 +6,24 @@ def admin_view(page):
     # Campos para cadastrar laboratório
     laboratorio_nome = ft.TextField(label="Nome do Laboratório", autofocus=True)
 
-    def cadastrar_laboratorio(e):
-        inserir_laboratorio(laboratorio_nome.value)
-        page.snack_bar = ft.SnackBar(ft.Text(f"Laboratório {laboratorio_nome.value} cadastrado com sucesso!"))
-        page.snack_bar.open = True
-        laboratorio_nome.value = ""  # Limpa o campo após o cadastro
+    # Dropdown de laboratórios
+    laboratorio_dropdown = ft.Dropdown(label="Laboratório", options=[])
+
+    def carregar_laboratorios():
+        # Carrega laboratórios do banco de dados e atualiza o dropdown
+        laboratorios = listar_laboratorios()
+        laboratorio_dropdown.options = [ft.dropdown.Option(str(lab[0]), lab[1]) for lab in laboratorios]
+        laboratorio_dropdown.value = None  # Reseta o valor do dropdown
         page.update()
+
+    def cadastrar_laboratorio(e):
+        if laboratorio_nome.value.strip():
+            inserir_laboratorio(laboratorio_nome.value)
+            laboratorio_nome.value = ""  # Limpa o campo após o cadastro
+            carregar_laboratorios()  # Atualiza o dropdown com o novo laboratório
+            page.snack_bar = ft.SnackBar(ft.Text(f"Laboratório '{laboratorio_nome.value}' cadastrado com sucesso!"))
+            page.snack_bar.open = True
+            page.update()
 
     # Campos para cadastrar usuários (alunos, professores, guardas)
     nome_usuario = ft.TextField(label="Nome do Usuário")
@@ -26,29 +38,26 @@ def admin_view(page):
         ]
     )
 
-    laboratorio_dropdown = ft.Dropdown(
-        label="Laboratório",
-        options=[
-            ft.dropdown.Option(str(lab[0]), lab[1]) for lab in listar_laboratorios()
-        ]
-    )
-
     def cadastrar_usuario(e):
-        inserir_usuario(
-            nome_usuario.value,
-            matricula_usuario.value,
-            senha_usuario.value,
-            tipo_usuario.value,
-            laboratorio_id=laboratorio_dropdown.value
-        )
-        page.snack_bar = ft.SnackBar(ft.Text(f"Usuário {nome_usuario.value} cadastrado com sucesso!"))
-        page.snack_bar.open = True
-        nome_usuario.value = ""
-        matricula_usuario.value = ""
-        senha_usuario.value = ""
-        tipo_usuario.value = ""
-        laboratorio_dropdown.value = ""
-        page.update()
+        if nome_usuario.value.strip() and matricula_usuario.value.strip() and senha_usuario.value.strip():
+            inserir_usuario(
+                nome_usuario.value,
+                matricula_usuario.value,
+                senha_usuario.value,
+                tipo_usuario.value,
+                laboratorio_id=laboratorio_dropdown.value
+            )
+            page.snack_bar = ft.SnackBar(ft.Text(f"Usuário {nome_usuario.value} cadastrado com sucesso!"))
+            page.snack_bar.open = True
+            nome_usuario.value = ""
+            matricula_usuario.value = ""
+            senha_usuario.value = ""
+            tipo_usuario.value = None
+            laboratorio_dropdown.value = None
+            page.update()
+
+    # Carrega laboratórios quando a interface do admin é carregada
+    carregar_laboratorios()
 
     # Exibição da tela do admin
     page.clean()
@@ -68,7 +77,7 @@ def admin_view(page):
                 matricula_usuario,
                 senha_usuario,
                 tipo_usuario,
-                laboratorio_dropdown,
+                laboratorio_dropdown,  # Dropdown atualizado dinamicamente
                 ft.ElevatedButton("Cadastrar Usuário", on_click=cadastrar_usuario),
             ],
             alignment=ft.MainAxisAlignment.CENTER,

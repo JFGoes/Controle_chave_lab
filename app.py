@@ -1,10 +1,10 @@
 import flet as ft
 from database.db import criar_tabelas
-from views.login_view import login_view  # Importando o login_view
-from views.admin_view import admin_view
+from views.login_view import login_view
 from views.aluno_view import aluno_view
 from views.guarda_view import guarda_view
 from views.professor_view import professor_view
+from views.admin_view import admin_view
 from controllers.autenticacao import login
 
 

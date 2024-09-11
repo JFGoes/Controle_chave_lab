@@ -1,10 +1,8 @@
 import flet as ft
 
-
 def login_view(page, realizar_login):
-    usuario = ft.TextField(label="Usuário", autofocus=True)
-    senha = ft.TextField(label="Senha", password=True,
-                         can_reveal_password=True)
+    matricula_input = ft.TextField(label="Matrícula", autofocus=True)
+    senha_input = ft.TextField(label="Senha", password=True, can_reveal_password=True)
     tipo_usuario = ft.Dropdown(
         label="Tipo de Usuário",
         options=[
@@ -16,15 +14,15 @@ def login_view(page, realizar_login):
     )
 
     def login_clicked(e):
-        realizar_login(usuario.value, senha.value, tipo_usuario.value)
+        realizar_login(matricula_input.value, senha_input.value, tipo_usuario.value)
 
     page.clean()
     page.add(
         ft.Column(
             controls=[
                 ft.Text("Login KeyLab", size=30, weight="bold"),
-                usuario,
-                senha,
+                matricula_input,
+                senha_input,
                 tipo_usuario,
                 ft.ElevatedButton("Entrar", on_click=login_clicked),
             ],
