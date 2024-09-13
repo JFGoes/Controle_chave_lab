@@ -26,6 +26,7 @@ def criar_tabelas():
         telefone TEXT,
         laboratorio TEXT,  -- Laboratório agora é um campo de texto
         tipo TEXT NOT NULL,  -- Aluno, Professor, Guarda, Admin
+        senha TEXT,  -- Adicionando o campo para armazenar a senha
         foto TEXT
     )
     ''')
@@ -34,10 +35,11 @@ def criar_tabelas():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS solicitacoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        usuario_id INTEGER,
-        solicitacao_status TEXT DEFAULT 'pendente',
+        aluno_id INTEGER,
+        chave_id INTEGER,
+        status TEXT DEFAULT 'Solicitado',
         data_solicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        FOREIGN KEY (aluno_id) REFERENCES usuarios(id)
     )
     ''')
 
@@ -57,28 +59,27 @@ def criar_tabelas():
     ''')
     admin_exists = cursor.fetchone()
 
-    # Se o admin não existir, vamos criá-lo com a senha padrão
+    # Se o Admin não existir, criar com a senha padrão 'admin123'
     if not admin_exists:
         cursor.execute('''
-        INSERT INTO usuarios (nome, nome_usuario, tipo, curso, matricula, rg, email, telefone)
-        VALUES ('Administrador', 'admin', 'Admin', NULL, NULL, NULL, NULL, NULL)
+        INSERT INTO usuarios (nome, nome_usuario, tipo, senha)
+        VALUES ('Administrador', 'admin', 'Admin', 'admin123')
         ''')
 
     # Removemos a tabela de laboratórios
     conn.commit()
     conn.close()
 
-# Função para inserir um novo usuário no banco de dados
 
-
-def inserir_usuario(nome_completo, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo, foto):
+def registrar_solicitacao_chave(aluno_id, chave_id):
     conn = conectar()
     cursor = conn.cursor()
 
+    # Inserir a solicitação no banco de dados
     cursor.execute('''
-    INSERT INTO usuarios (nome, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo, foto)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (nome_completo, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo, foto))
+    INSERT INTO solicitacoes (aluno_id, chave_id, status)
+    VALUES (?, ?, 'Solicitado')
+    ''', (aluno_id, chave_id))
 
     conn.commit()
     conn.close()
@@ -91,7 +92,7 @@ def buscar_usuario_por_login(nome_usuario):
 
     # Seleciona os campos do usuário, incluindo o laboratório (agora um campo de texto)
     cursor.execute('''
-    SELECT id, nome, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo, foto
+    SELECT id, nome, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo, senha, foto
     FROM usuarios
     WHERE nome_usuario = ?
     ''', (nome_usuario,))
@@ -102,33 +103,64 @@ def buscar_usuario_por_login(nome_usuario):
     # Retorna os dados do usuário, incluindo o laboratório
     return usuario
 
+# Função para inserir um novo usuário no banco de dados
 
-def buscar_solicitacoes():
+
+def inserir_usuario(nome_completo, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo, senha, foto):
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute('''
-    SELECT s.id, u.nome AS nome_usuario, s.solicitacao_status, s.data_solicitacao
+    INSERT INTO usuarios (nome, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo,senha, foto)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
+    ''', (nome_completo, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo, senha, foto))
+
+    conn.commit()
+    conn.close()
+
+
+def atualizar_senha(usuario_id, nova_senha):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+    UPDATE usuarios
+    SET senha = ?
+    WHERE id = ?
+    ''', (nova_senha, usuario_id))
+
+    conn.commit()
+    conn.close()
+
+
+def buscar_solicitacoes_pendentes():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # Buscar todas as solicitações que ainda estão com status "Solicitado"
+    cursor.execute('''
+    SELECT s.id, u.nome, s.chave_id, s.data_solicitacao
     FROM solicitacoes s
-    JOIN usuarios u ON u.id = s.usuario_id
-    WHERE s.solicitacao_status = 'pendente'
+    JOIN usuarios u ON s.aluno_id = u.id
+    WHERE s.status = 'Solicitado'
     ''')
 
     solicitacoes = cursor.fetchall()
     conn.close()
 
-    return [{"id": row[0], "nome_usuario": row[1], "status": row[2], "data_solicitacao": row[3]} for row in solicitacoes]
+    return solicitacoes
 
 # Função para atualizar o status de uma solicitação
 
 
-def atualizar_solicitacao(solicitacao_id, novo_status):
+def atualizar_status_solicitacao(solicitacao_id, novo_status):
     conn = conectar()
     cursor = conn.cursor()
 
+    # Atualizar o status da solicitação (Autorizado, Negado)
     cursor.execute('''
     UPDATE solicitacoes
-    SET solicitacao_status = ?
+    SET status = ?
     WHERE id = ?
     ''', (novo_status, solicitacao_id))
 
@@ -185,20 +217,37 @@ def listar_relatorio_diario():
     return [{"aluno": row[0], "acao": row[1], "timestamp": row[2]} for row in relatorio]
 
 
-def listar_historico():
+def listar_historico_chaves():
     conn = conectar()
     cursor = conn.cursor()
 
-    # Executa a consulta para listar as ações do histórico
+    # Consultar todas as solicitações de chaves, juntando com as informações dos alunos e do status
     cursor.execute('''
-    SELECT u.nome AS aluno, h.acao, h.timestamp
-    FROM historico h
-    JOIN usuarios u ON u.id = h.aluno_id
-    ORDER BY h.timestamp DESC
+    SELECT s.id, u.nome, s.chave_id, s.status, s.data_solicitacao
+    FROM solicitacoes s
+    JOIN usuarios u ON s.aluno_id = u.id
+    ORDER BY s.data_solicitacao DESC
     ''')
 
     historico = cursor.fetchall()
     conn.close()
 
-    # Retorna uma lista de dicionários com as informações do histórico
-    return [{"aluno": row[0], "acao": row[1], "timestamp": row[2]} for row in historico]
+    return historico
+
+# def listar_historico():
+#     conn = conectar()
+#     cursor = conn.cursor()
+
+#     # Executa a consulta para listar as ações do histórico
+#     cursor.execute('''
+#     SELECT u.nome AS aluno, h.acao, h.timestamp
+#     FROM historico h
+#     JOIN usuarios u ON u.id = h.aluno_id
+#     ORDER BY h.timestamp DESC
+#     ''')
+
+#     historico = cursor.fetchall()
+#     conn.close()
+
+#     # Retorna uma lista de dicionários com as informações do histórico
+#     return [{"aluno": row[0], "acao": row[1], "timestamp": row[2]} for row in historico]

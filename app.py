@@ -10,6 +10,7 @@ from controllers.autenticacao import login
 
 
 def main(page: ft.Page):
+   # page.bgcolor = "green"
     page.window_width = 480
     page.window_height = 800
     page.padding = 10
@@ -31,9 +32,9 @@ def main(page: ft.Page):
             elif tipo_usuario == 'Guarda':
                 guarda_view(page)
             elif tipo_usuario == 'Coordenador':
-                coordenador_view(page, realizar_login)
+                coordenador_view(page)
             elif tipo_usuario == 'Professor':
-                professor_view(page, realizar_login)
+                professor_view(page)
             elif tipo_usuario == 'Admin':
                 admin_view(page, realizar_login)
             else:
@@ -41,32 +42,8 @@ def main(page: ft.Page):
                 page.snack_bar.open = True
                 page.update()
 
-    # Container para o fundo com gradiente de toda a página
-    container = ft.Container(
-        width=page.window_width,
-        height=page.window_height,
-        alignment=ft.alignment.center,  # Centraliza o conteúdo
-        gradient=ft.LinearGradient(
-            begin=ft.alignment.top_left,
-            end=ft.alignment.bottom_right,
-            colors=["#FF5733", "#C70039", "#900C3F",
-                    "#581845"]  # Gradiente de cores
-        ),
-        content=ft.Column(
-            alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            controls=[
-                # Aqui vamos carregar a tela de login inicialmente
-                login_view(page, realizar_login)  # Função de login inicial
-            ]
-        )
-    )
-
-    # Adicionar o container como fundo da página
-    page.add(container)
-
-    # Atualizar a página
-    page.update()
+    # Carregar a tela de login inicialmente
+    login_view(page, realizar_login)
 
 
 ft.app(target=main)

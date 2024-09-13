@@ -34,8 +34,8 @@ def admin_view(page, realizar_login):
     # Campos comuns
     nome_completo = ft.TextField(label="Nome Completo")
     nome_usuario = ft.TextField(label="Nome de Usuário")
-    # Campo de entrada para o laboratório
-    laboratorio = ft.TextField(label="Laboratório")
+    senha = ft.TextField(label="Senha", password=True, can_reveal_password=True)  # Adiciona campo de senha
+    laboratorio = ft.TextField(label="Laboratório")# Campo de entrada para o laboratório
 
     # Campos específicos para alunos
     curso = ft.TextField(label="Curso")
@@ -61,11 +61,9 @@ def admin_view(page, realizar_login):
             tipo_usuario,  # Dropdown para escolher o tipo de usuário
             nome_completo,
             nome_usuario,
+            senha,  # Campo para a senha do usuário
             telefone,
-            email,
-            foto_selecionada,  # Campo para mostrar a foto selecionada
-            ft.ElevatedButton("Carregar Foto", on_click=lambda _: file_picker.pick_files(
-                allowed_extensions=["jpg", "jpeg", "png"]))
+            email
         ]
 
         # Condicionalmente exibe os campos conforme o tipo de usuário
@@ -73,12 +71,15 @@ def admin_view(page, realizar_login):
             controls.extend(
                 [curso, matricula, rg, laboratorio])
         elif tipo_usuario.value == "Professor":
-            controls.extend([siape, laboratorio])
+            controls.extend([curso, siape, laboratorio])
         elif tipo_usuario.value == "Guarda":
             controls.extend([rg_guarda])
 
         # Botão para efetuar o cadastro e botão para sair
         controls.extend([
+            foto_selecionada,  # Campo para mostrar a foto selecionada
+            ft.ElevatedButton("Carregar Foto", on_click=lambda _: file_picker.pick_files(
+                allowed_extensions=["jpg", "jpeg", "png"])),
             ft.ElevatedButton("Cadastrar Usuário", on_click=cadastrar_usuario),
             ft.ElevatedButton("Sair", on_click=lambda _: login_view(
                 page, realizar_login))  # Botão de sair
@@ -103,6 +104,7 @@ def admin_view(page, realizar_login):
                 telefone=telefone.value,
                 laboratorio=laboratorio.value,  # Agora usa o campo de texto para laboratório
                 tipo="Aluno",
+                senha=senha.value,  # Senha definida
                 foto=foto_selecionada.value  # Foto carregada
             )
         elif tipo_usuario.value == "Professor":
@@ -116,6 +118,7 @@ def admin_view(page, realizar_login):
                 telefone=telefone.value,
                 laboratorio=laboratorio.value,  # Agora usa o campo de texto para laboratório
                 tipo="Professor",
+                senha=senha.value,  # Senha definida
                 foto=foto_selecionada.value  # Foto carregada
             )
         elif tipo_usuario.value == "Guarda":
@@ -127,7 +130,9 @@ def admin_view(page, realizar_login):
                 rg=rg_guarda.value,
                 email=email.value,
                 telefone=telefone.value,
+                laboratorio=None,
                 tipo="Guarda",
+                senha=senha.value,  # Senha definida
                 foto=foto_selecionada.value  # Foto carregada
             )
 
@@ -150,6 +155,7 @@ def admin_view(page, realizar_login):
         siape.value = ""
         rg_guarda.value = ""
         laboratorio.value = ""  # Limpa o campo de texto do laboratório
+        senha.value = ""  # Limpa a senha
         foto_selecionada.value = ""
 
     # Inicializa os campos

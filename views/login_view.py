@@ -15,6 +15,13 @@ def login_view(page, realizar_login):
     )
 
     def login_clicked(e):
+        # Verificação se todos os campos estão preenchidos
+        if not nome_usuario.value or not senha.value or not tipo_usuario.value:
+            page.snack_bar = ft.SnackBar(ft.Text("Preencha todos os campos!"))
+            page.snack_bar.open = True
+            page.update()
+            return
+        
         realizar_login(nome_usuario.value, senha.value, tipo_usuario.value)
 
     page.clean()

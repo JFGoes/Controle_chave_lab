@@ -1,17 +1,25 @@
 import flet as ft
-from database.db import listar_historico  # Função para listar o histórico no banco de dados
+# Função para listar o histórico no banco de dados
+from database.db import listar_historico_chaves
+
 
 def professor_view(page):
     page.clean()
 
     # Função para carregar o histórico do banco de dados
     def carregar_historico():
-        historico = listar_historico()  # Função que retorna uma lista de ações do histórico
+        # Função que retorna uma lista de ações do histórico
+        historico = listar_historico_chaves()
+
+        # Limpar a página antes de adicionar novos elementos
+        page.clean()
+
         if not historico:
             # Caso o histórico esteja vazio, exibe uma mensagem
             return [ft.Text("Nenhum registro encontrado.", size=20)]
         return [
-            ft.Text(f"Ação: {entry['acao']} - Aluno: {entry['aluno']} - Horário: {entry['timestamp']}")
+            ft.Text(f"Ação: {
+                    entry['acao']} - Aluno: {entry['aluno']} - Horário: {entry['timestamp']}")
             for entry in historico
         ]
 
@@ -23,7 +31,8 @@ def professor_view(page):
                 controls=[
                     ft.Text("Histórico de Chaves", size=25, weight="bold"),
                     *carregar_historico(),  # Carrega as ações de retirada e devolução
-                    ft.ElevatedButton("Atualizar Histórico", on_click=atualizar_historico),
+                    ft.ElevatedButton("Atualizar Histórico",
+                                      on_click=atualizar_historico),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -36,7 +45,8 @@ def professor_view(page):
         ft.Column(
             controls=[
                 ft.Text("Painel do Professor", size=30, weight="bold"),
-                ft.ElevatedButton("Atualizar Histórico", on_click=atualizar_historico),
+                ft.ElevatedButton("Atualizar Histórico",
+                                  on_click=atualizar_historico),
             ],
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
