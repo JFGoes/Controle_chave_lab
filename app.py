@@ -30,11 +30,11 @@ def main(page: ft.Page):
             if tipo_usuario == 'Aluno':
                 aluno_view(page, user_data)
             elif tipo_usuario == 'Guarda':
-                guarda_view(page)
+                guarda_view(page,realizar_login)
             elif tipo_usuario == 'Coordenador':
                 coordenador_view(page)
             elif tipo_usuario == 'Professor':
-                professor_view(page)
+                professor_view(page, realizar_login)
             elif tipo_usuario == 'Admin':
                 admin_view(page, realizar_login)
             else:

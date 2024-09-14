@@ -105,7 +105,6 @@ def buscar_usuario_por_login(nome_usuario):
 
 # Função para inserir um novo usuário no banco de dados
 
-
 def inserir_usuario(nome_completo, nome_usuario, curso, matricula, rg, email, telefone, laboratorio, tipo, senha, foto):
     conn = conectar()
     cursor = conn.cursor()
@@ -139,7 +138,7 @@ def buscar_solicitacoes_pendentes():
 
     # Buscar todas as solicitações que ainda estão com status "Solicitado"
     cursor.execute('''
-    SELECT s.id, u.nome, s.chave_id, s.data_solicitacao
+    SELECT s.id, u.nome, u.rg, u.laboratorio, s.chave_id, s.data_solicitacao
     FROM solicitacoes s
     JOIN usuarios u ON s.aluno_id = u.id
     WHERE s.status = 'Solicitado'
@@ -251,3 +250,38 @@ def listar_historico_chaves():
 
 #     # Retorna uma lista de dicionários com as informações do histórico
 #     return [{"aluno": row[0], "acao": row[1], "timestamp": row[2]} for row in historico]
+def buscar_historico_por_intervalo(data_inicio, data_fim):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # Busca as solicitações no intervalo de datas
+    cursor.execute('''
+    SELECT s.id, u.nome, s.chave_id, s.status, s.data_solicitacao
+    FROM solicitacoes s
+    JOIN usuarios u ON s.aluno_id = u.id
+    WHERE s.data_solicitacao BETWEEN ? AND ?
+    ORDER BY s.data_solicitacao DESC
+    ''', (data_inicio, data_fim))
+
+    historico = cursor.fetchall()
+    conn.close()
+
+    return historico
+
+def listar_historico_por_professor(professor_laboratorio):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # Buscar todos os alunos vinculados ao laboratório do professor e o status da chave
+    cursor.execute('''
+    SELECT u.nome, u.laboratorio, s.chave_id, s.status, s.data_solicitacao
+    FROM solicitacoes s
+    JOIN usuarios u ON s.aluno_id = u.id
+    WHERE u.laboratorio = ? 
+    ORDER BY s.data_solicitacao DESC
+    ''', (professor_laboratorio,))
+
+    historico = cursor.fetchall()
+    conn.close()
+
+    return historico

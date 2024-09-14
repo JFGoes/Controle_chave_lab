@@ -3,6 +3,7 @@ from database.db import registrar_solicitacao_chave
 
 
 def aluno_view(page, aluno_data):
+    page.clean()
     aluno_id = aluno_data["id"]  # Pegar o ID do aluno do dado passado
     # ID da chave que o aluno deseja solicitar
     chave_id = ft.TextField(label="ID da Chave")
